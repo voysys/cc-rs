@@ -3129,7 +3129,6 @@ fn run_output(cmd: &mut Command, program: &str) -> Result<Vec<u8>, Error> {
         }
     };
     print.join().unwrap();
-    println!("{}", status);
 
     if status.success() {
         Ok(stdout)
