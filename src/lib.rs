@@ -1027,7 +1027,7 @@ impl Build {
             }
 
             for dep in unique_deps {
-                self.print(fromat!("cargo:rerun-if-changed={}", dep));
+                self.print(&format!("cargo:rerun-if-changed={}", dep));
             }
         }
 
