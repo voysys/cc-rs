@@ -1011,23 +1011,25 @@ impl Build {
         let msvc = self.get_target()?.contains("msvc");
 
         #[cfg(feature = "track-dependencies")]
-        if self.track_dependencies {
-            let mut unique_deps = std::collections::HashSet::new();
+        {
+            if self.track_dependencies {
+                let mut unique_deps = std::collections::HashSet::new();
 
-            for obj in &objects {
-                if !obj.dst.is_file() {
-                    panic!("Faild to build: {:?}", obj.dst);
-                }
+                for obj in &objects {
+                    if !obj.dst.is_file() {
+                        panic!("Faild to build: {:?}", obj.dst);
+                    }
 
-                if let Some(dependencies) = track_dependencies::get_dependencies(&obj, msvc) {
-                    for dep in dependencies {
-                        unique_deps.insert(dep);
+                    if let Some(dependencies) = track_dependencies::get_dependencies(&obj, msvc) {
+                        for dep in dependencies {
+                            unique_deps.insert(dep);
+                        }
                     }
                 }
-            }
 
-            for dep in unique_deps {
-                self.print(&format!("cargo:rerun-if-changed={}", dep));
+                for dep in unique_deps {
+                    self.print(&format!("cargo:rerun-if-changed={}", dep));
+                }
             }
         }
 
@@ -1354,14 +1356,16 @@ impl Build {
         let is_arm = target.contains("aarch64") || target.contains("arm");
 
         #[cfg(feature = "track-dependencies")]
-        if track_dependencies {
-            if msvc {
-                cmd.arg("-sourceDependencies");
-                cmd.arg(&obj.dst.with_extension("json"));
-            } else {
-                cmd.arg("-MD");
-                cmd.arg("-MF");
-                cmd.arg(&obj.dst.with_extension("dep"));
+        {
+            if track_dependencies {
+                if msvc {
+                    cmd.arg("-sourceDependencies");
+                    cmd.arg(&obj.dst.with_extension("json"));
+                } else {
+                    cmd.arg("-MD");
+                    cmd.arg("-MF");
+                    cmd.arg(&obj.dst.with_extension("dep"));
+                }
             }
         }
 
@@ -1379,8 +1383,10 @@ impl Build {
         }
 
         #[cfg(feature = "track-dependencies")]
-        if !track_dependencies || track_dependencies::is_run_needed(&obj, &cmd, msvc) {
-            run(&mut cmd, &name)?;
+        {
+            if !track_dependencies || track_dependencies::is_run_needed(&obj, &cmd, msvc) {
+                run(&mut cmd, &name)?;
+            }
         }
 
         #[cfg(not(feature = "track-dependencies"))]
