@@ -2490,17 +2490,13 @@ impl Build {
     }
 
     fn get_ar(&self) -> Result<(Command, String), Error> {
-        println!("getting ar");
         if let Some(ref p) = self.archiver {
-            println!("custom archiver");
             let name = p.file_name().and_then(|s| s.to_str()).unwrap_or("ar");
             return Ok((self.cmd(p), name.to_string()));
         }
-        println!("something else");
         if let Ok(p) = self.get_var("AR") {
             return Ok((self.cmd(&p), p));
         }
-        println!("after AR");
         let target = self.get_target()?;
         let default_ar = "ar".to_string();
         let program = if target.contains("android") {
