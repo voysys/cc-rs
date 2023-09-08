@@ -3174,20 +3174,29 @@ fn run_output(cmd: &mut Command, program: &str) -> Result<Vec<u8>, Error> {
 }
 
 fn spawn(cmd: &mut Command, program: &str) -> Result<(Child, JoinHandle<()>), Error> {
-    println!("{:?}", cmd);
-
     // Capture the standard error coming from these programs, and write it out
     // with cargo:warning= prefixes. Note that this is a bit wonky to avoid
     // requiring the output to be UTF-8, we instead just ship bytes from one
     // location to another.
+
+    let cmd_line = format!("{cmd:?}");
     match cmd.stderr(Stdio::piped()).spawn() {
         Ok(mut child) => {
             let stderr = BufReader::new(child.stderr.take().unwrap());
             let print = thread::spawn(move || {
-                for line in stderr.split(b'\n').filter_map(|l| l.ok()) {
-                    print!("cargo:warning=");
-                    std::io::stdout().write_all(&line).unwrap();
-                    println!("");
+                let lines = stderr
+                    .split(b'\n')
+                    .filter_map(|l| l.ok())
+                    .collect::<Vec<Vec<u8>>>();
+
+                if !lines.is_empty() {
+                    println!("{cmd_line}");
+
+                    for line in lines {
+                        print!("cargo:warning=");
+                        std::io::stdout().write_all(&line).unwrap();
+                        println!();
+                    }
                 }
             });
             Ok((child, print))
